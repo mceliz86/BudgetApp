@@ -22,6 +22,14 @@ var budgetController = (function() {
     this.value = value;
   };
 
+  var calculateTotal = function(type) {
+    var sum = 0;
+    data.allItems[type].forEach(element => {
+      sum = sum + element.value;
+    });
+    data.totals[type] = sum;
+  };
+
   var data = {
     allItems: {
       exp: [],
@@ -30,7 +38,9 @@ var budgetController = (function() {
     totals: {
       exp: 0,
       inc: 0
-    }
+    },
+    budget: 0,
+    percentage: -1
   };
 
   return {
@@ -52,6 +62,22 @@ var budgetController = (function() {
       data.allItems[type].push(newItem);
       return newItem;
     },
+    calculateBudget: function() {
+      calculateTotal("exp");
+      calculateTotal("inc");
+      data.budget = data.totals.inc - data.totals.exp;
+      if (data.totals.inc > 0) {
+        data.percentage = Math.round((data.totals.exp / data.totals.inc) * 100);
+      }
+    },
+    getBudget: function() {
+      return {
+        budget: data.budget,
+        percentage: data.percentage,
+        totalIncome: data.totals.inc,
+        totalExpenses: data.totals.exp
+      };
+    },
     testing: function() {
       console.log(data);
     }
@@ -65,7 +91,7 @@ var UIController = (function() {
       return {
         type: document.querySelector(DOMstrings.inputType).value, //"inc" or "exp"
         description: document.querySelector(DOMstrings.inputDescription).value,
-        value: document.querySelector(DOMstrings.inputValue).value
+        value: parseFloat(document.querySelector(DOMstrings.inputValue).value)
       };
     },
     addListItem: function(obj, type) {
@@ -112,17 +138,25 @@ var controller = (function(budgetCtrl, UICtrl) {
       }
     });
   };
+
+  var updateBudget = function() {
+    budgetController.calculateBudget();
+    var budget = budgetController.getBudget;
+  };
+
   var ctrlAddItem = function() {
     var input = UIController.getInput();
 
-    var newItem = budgetController.addItem(
-      input.type,
-      input.description,
-      input.value
-    );
+    if (input.description != "" && !isNaN(input.value) && input.value > 0) {
+      var newItem = budgetController.addItem(
+        input.type,
+        input.description,
+        input.value
+      );
 
-    UIController.addListItem(newItem, input.type);
-    UIController.clearFields();
+      UIController.addListItem(newItem, input.type);
+      UIController.clearFields();
+    }
   };
   return {
     init: function() {
