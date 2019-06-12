@@ -5,7 +5,12 @@ var DOMstrings = (function() {
     inputValue: ".add__value",
     inputButton: ".add__btn",
     incomeContainer: ".income__list",
-    expensesContainer: ".expenses__list"
+    expensesContainer: ".expenses__list",
+    budgetLabel: ".budget__value",
+    incomeLabel: ".budget__income--value",
+    expensesLabel: ".budget__expenses--value",
+    percentageLabel: ".budget__expenses--percentage",
+    container: ".container"
   };
 })();
 
@@ -121,6 +126,19 @@ var UIController = (function() {
         element.description = "";
       });
       fieldsArray[0].focus();
+    },
+    displayBudget: function(obj) {
+      document.querySelector(DOMstrings.budgetLabel).textContent = obj.budget;
+      document.querySelector(DOMstrings.incomeLabel).textContent =
+        obj.totalIncome;
+      document.querySelector(DOMstrings.expensesLabel).textContent =
+        obj.totalExpenses;
+      if (obj.percentage > 0) {
+        document.querySelector(DOMstrings.percentageLabel).textContent =
+          obj.percentage + "%";
+      } else {
+        document.querySelector(DOMstrings.percentageLabel).textContent = "%";
+      }
     }
   };
 })();
@@ -137,30 +155,54 @@ var controller = (function(budgetCtrl, UICtrl) {
         ctrlAddItem();
       }
     });
+
+    document
+      .querySelector(DOMstrings.container)
+      .addEventListener("click", ctrlDeleteItem);
   };
 
   var updateBudget = function() {
-    budgetController.calculateBudget();
-    var budget = budgetController.getBudget;
+    budgetCtrl.calculateBudget();
+    var budget = budgetCtrl.getBudget();
+    UICtrl.displayBudget(budget);
   };
 
   var ctrlAddItem = function() {
     var input = UIController.getInput();
 
     if (input.description != "" && !isNaN(input.value) && input.value > 0) {
-      var newItem = budgetController.addItem(
+      var newItem = budgetCtrl.addItem(
         input.type,
         input.description,
         input.value
       );
 
-      UIController.addListItem(newItem, input.type);
-      UIController.clearFields();
+      UICtrl.addListItem(newItem, input.type);
+      UICtrl.clearFields();
+      updateBudget();
     }
   };
+
+  var ctrlDeleteItem = function(event) {
+    var splitID, itemID, type, id;
+
+    itemID = event.target.parentNode.parentNode.parentNode.parentNode.id;
+    if (itemID) {
+      splitID = itemID.split("-");
+      type = splitID[0];
+      id = splitID[1];
+    }
+  };
+
   return {
     init: function() {
       console.log("app started!");
+      UICtrl.displayBudget({
+        budget: 0,
+        totalIncome: 0,
+        totalExpenses: 0,
+        percentage: 0
+      });
       iniciarEventos();
     }
   };
