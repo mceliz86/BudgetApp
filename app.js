@@ -129,6 +129,13 @@ var budgetController = (function() {
 
 //UI CONTROLLER
 var UIController = (function() {
+  var formatNumbers = function(number, type) {
+    number = Math.abs(number);
+    number = number.toFixed(2);
+
+    return (type === "exp" ? "- " : "+ ") + number;
+  };
+
   return {
     getInput: function() {
       return {
@@ -150,7 +157,7 @@ var UIController = (function() {
       }
       newHtml = html.replace("%id%", obj.id);
       newHtml = newHtml.replace("%description%", obj.description);
-      newHtml = newHtml.replace("%value%", obj.value);
+      newHtml = newHtml.replace("%value%", formatNumbers(obj.value, type));
       document.querySelector(element).insertAdjacentHTML("beforeend", newHtml);
     },
     clearFields: function() {
@@ -229,7 +236,6 @@ var controller = (function(budgetCtrl, UICtrl) {
   var updatePercentages = function() {
     budgetCtrl.calculatePercentages();
     var percentages = budgetCtrl.getPorcentages();
-    console.log(percentages);
     UICtrl.displayPercentages(percentages);
   };
 
